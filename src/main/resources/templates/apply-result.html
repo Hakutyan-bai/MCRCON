@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>申请结果 - Minecraft 白名单</title>
+    <style>
+        /* 统一到 apply.html 的视觉风格 */
+        html, body { height: 100%; overflow: hidden; }
+
+        :root {
+            --page-bg: #eaeaea;
+            --card-radius: 24px;
+            --card-shadow: 0 16px 44px rgba(0,0,0,0.24);
+            --btn: #111111;
+            --btn-hover: #000000;
+            --blue: #2563eb;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 16px;
+            background: var(--page-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+            color: #111;
+            text-align: center;
+        }
+
+        .result-container {
+            background: #fff;
+            padding: 48px 40px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            max-width: 720px;
+        }
+
+        .success-icon { font-size: 80px; color: #22c55e; margin-bottom: 20px; }
+        .error-icon   { font-size: 80px; color: #ef4444; margin-bottom: 20px; }
+
+        h1 { color: #111; margin-bottom: 20px; font-weight: 800; letter-spacing: -0.2px; }
+
+        .result-message {
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            background: #fafafa;
+        }
+        .success-message { background-color: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .error-message   { background-color: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+        .player-info { font-weight: 800; color: var(--blue); margin: 10px 0; }
+
+        .btn {
+            padding: 14px 24px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+            transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+            color: #fff;
+        }
+        .btn-primary { background: var(--btn); }
+        .btn-primary:hover { background: var(--btn-hover); transform: translateY(-1px); }
+        .btn-secondary { background: #374151; }
+        .btn-secondary:hover { background: #111827; transform: translateY(-1px); }
+
+        .button-group { margin-top: 30px; }
+
+        .additional-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <!-- 成功结果 -->
+        <div th:if="${success}">
+            <div class="success-icon">✅</div>
+            <h1>申请提交成功！</h1>
+            <div class="result-message success-message" th:text="${success}"></div>
+            <div class="player-info" th:if="${playerName}">
+                玩家ID: <span th:text="${playerName}"></span>
+            </div>
+            <div class="additional-info">
+                <strong>接下来会发生什么？</strong><br>
+                • 管理员会在24-48小时内审核您的申请<br>
+                • 审核结果将通过邮箱通知您<br>
+                • 请保持邮箱畅通，注意查收邮件
+            </div>
+        </div>
+
+        <!-- 错误结果 -->
+        <div th:if="${error}">
+            <div class="error-icon">❌</div>
+            <h1>申请失败</h1>
+            <div class="result-message error-message" th:text="${error}"></div>
+            <div class="player-info" th:if="${playerName}">
+                玩家ID: <span th:text="${playerName}"></span>
+            </div>
+            <div class="player-info" th:if="${email}">
+                邮箱: <span th:text="${email}"></span>
+            </div>
+            <div class="additional-info">
+                <strong>遇到问题？</strong><br>
+                • 如果玩家名或邮箱已被使用，请检查是否之前已经申请过<br>
+                • 如有疑问，请联系服务器管理员<br>
+                • 您可以重新填写申请表单
+            </div>
+        </div>
+
+        <div class="button-group">
+            <a href="/" class="btn btn-primary">返回首页</a>
+            <a href="/apply" class="btn btn-secondary">重新申请</a>
+            <div th:if="${success}">
+                <a th:if="${playerName}" th:href="@{'/edit-application/' + ${playerName}}" class="btn btn-secondary">修改申请信息</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

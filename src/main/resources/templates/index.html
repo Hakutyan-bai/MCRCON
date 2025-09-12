@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首页 - Minecraft 白名单管理</title>
+    <style>
+        /* 统一到 apply.html 的视觉风格 */
+        html, body { height: 100%; overflow: hidden; }
+
+        :root {
+            --page-bg: #eaeaea;
+            --card-radius: 24px;
+            --card-shadow: 0 16px 44px rgba(0,0,0,0.24);
+            --btn: #111111;
+            --btn-hover: #000000;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 16px;
+            background: var(--page-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+            color: #111;
+        }
+
+        .container {
+            background: #fff;
+            padding: 48px 40px;
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            max-width: 800px;
+        }
+
+        h1 { color: #111; margin-bottom: 20px; font-weight: 800; letter-spacing: -0.2px; }
+
+        .btn {
+            display: inline-block;
+            margin: 10px;
+            padding: 14px 24px;
+            font-size: 16px;
+            color: #fff;
+            background: var(--btn);
+            border: none;
+            border-radius: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+        }
+        .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); box-shadow: 0 6px 14px rgba(0,0,0,0.25); }
+
+        .btn-secondary { background: #374151; }
+        .btn-secondary:hover { background: #111827; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>欢迎来到 Minecraft 白名单管理系统</h1>
+        <a href="/apply" class="btn">申请白名单</a>
+    </div>
+</body>
+</html>

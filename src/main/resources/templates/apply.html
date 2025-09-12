@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>白名单申请</title>
+    <style>
+        /* 禁止页面上下滚动 */
+        html, body { height: 100%; overflow: hidden; }
+        /* 视觉对齐示例图：
+           - 页面：浅灰背景
+           - 卡片：白底、超大圆角、强阴影
+           - 输入：圆角、浅灰边框、聚焦蓝色描边 + 柔和外发光
+           - 按钮：黑色主按钮，圆角与阴影
+        */
+        :root {
+            --page-bg: #eaeaea;         /* 页面浅灰 */
+            --card-radius: 24px;        /* 卡片大圆角 */
+            --card-shadow: 0 16px 44px rgba(0,0,0,0.24);
+            --label: #0f172a;           /* 深色标签 */
+            --border: #e5e7eb;          /* 输入框常态边框 */
+            --ring: #2563eb;            /* 聚焦蓝 */
+            --placeholder: #9ca3af;     /* 占位符 */
+            --btn: #111111;             /* 主按钮 */
+            --btn-hover: #000000;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 16px;
+            background: var(--page-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+            color: #111;
+            overflow: hidden; /* 再次声明，增强兼容性 */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 48px 40px;
+            box-shadow: var(--card-shadow);
+        }
+
+        h1 {
+            margin: 0 0 24px;
+            color: #111;
+            text-align: left;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.2px;
+        }
+
+        .form-group { margin-bottom: 22px; }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 800;
+            color: var(--label);
+            font-size: 16px;
+        }
+
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px; /* 圆角输入 */
+            font-size: 16px;
+            background: #fff;
+            box-sizing: border-box;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            resize: vertical;
+            padding: 14px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+            background: #fff;
+            box-sizing: border-box;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+
+        input::placeholder,
+        textarea::placeholder { color: var(--placeholder); }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+            background: #fff;
+        }
+
+        .btn {
+            width: 100%;
+            background: var(--btn);
+            color: #fff;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+            transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
+        }
+        .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); box-shadow: 0 6px 14px rgba(0,0,0,0.25); }
+
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            background: #fafafa;
+        }
+        .alert-success { background-color: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .alert-error   { background-color: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+        .required { color: #e11d48; font-weight: 700; }
+
+        @media (max-width: 480px) {
+            .container { padding: 36px 24px; border-radius: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Minecraft 服务器白名单申请</h1>
+
+        <form th:action="@{/apply}" th:object="${application}" method="post">
+            <div class="form-group">
+                <label for="playerName">玩家ID <span class="required">*</span></label>
+                <input type="text"
+                       id="playerName"
+                       name="playerName"
+                       th:field="*{playerName}"
+                       placeholder="请输入您的Minecraft游戏ID"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">电子邮箱 <span class="required">*</span></label>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       th:field="*{email}"
+                       placeholder="请输入您的邮箱地址"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="qqNumber">QQ号码 <span class="required">*</span></label>
+                <input type="text"
+                       id="qqNumber"
+                       name="qqNumber"
+                       th:field="*{qqNumber}"
+                       placeholder="请输入您的QQ号码"
+                       pattern="[0-9]{5,11}"
+                       title="请输入5-11位数字"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="reason">申请原因 <span class="required">*</span></label>
+                <textarea id="reason"
+                          name="reason"
+                          th:field="*{reason}"
+                          placeholder="请详细说明您申请白名单的原因..."
+                          required></textarea>
+            </div>
+
+            <button type="submit" class="btn">提交申请</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员仪表板 - 白名单申请管理</title>
+    <style>
+        /* 统一到 apply.html 的视觉风格，仅修改样式 */
+        html, body { height: 100%; overflow: hidden; }
+
+        :root {
+            --page-bg: #eaeaea;
+            --card-radius: 24px;
+            --card-shadow: 0 16px 44px rgba(0,0,0,0.24);
+            --label: #0f172a;
+            --border: #e5e7eb;
+            --ring: #2563eb;
+            --placeholder: #9ca3af;
+            --btn: #111111;
+            --btn-hover: #000000;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --secondary: #374151;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 16px;
+            background: var(--page-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+            color: #111;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 32px 28px;
+            box-shadow: var(--card-shadow);
+            max-height: calc(100vh - 80px);
+            overflow: auto;
+        }
+
+        h1 { color: #111; text-align: left; margin: 0 0 20px; font-weight: 800; letter-spacing: -0.2px; }
+
+        .alert { padding: 15px; margin: 20px 0; border-radius: 12px; border: 1px solid #eee; background: #fafafa; }
+        .alert-success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .alert-error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+        .applications-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 12px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+        .applications-table th, .applications-table td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; vertical-align: top; }
+        .applications-table th { background: #f8fafc; font-weight: 800; }
+        .applications-table tr:nth-child(even) { background: #f9fafb; }
+        .applications-table tr:last-child td { border-bottom: none; }
+
+        .btn { padding: 10px 14px; border: none; border-radius: 14px; cursor: pointer; text-decoration: none; display: inline-block; margin: 2px; font-size: 14px; color: #fff; box-shadow: 0 8px 18px rgba(0,0,0,.2); transition: background-color .15s ease, transform .15s ease; }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-edit { background: var(--btn); }
+        .btn-edit:hover { background: var(--btn-hover); }
+        .btn-delete { background: var(--danger); }
+        .btn-delete:hover { background: #b91c1c; }
+        .btn-back { background: var(--secondary); }
+        .btn-back:hover { background: #111827; }
+        .btn-success { background: var(--success); }
+        .btn-success:hover { background: #15803d; }
+        .btn-warning { background: var(--warning); color: #111; }
+        .btn-warning:hover { background: #d97706; }
+
+        .no-data { text-align: center; padding: 50px; color: #666; }
+        .reason-cell { max-width: 360px; word-wrap: break-word; }
+        .actions-cell { min-width: 220px; }
+
+        .status-pending { color: var(--warning); font-weight: 800; }
+        .status-approved { color: var(--success); font-weight: 800; }
+        .status-rejected { color: var(--danger); font-weight: 800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>白名单申请管理</h1>
+
+        <!-- 用户信息和登出 -->
+        <div style="text-align: right; margin-bottom: 20px; padding: 10px; background-color: #e9ecef; border-radius: 5px;">
+            <span>欢迎，<strong th:text="${currentUser}">管理员</strong>！</span>
+            <a href="/logout" class="btn btn-back" style="margin-left: 15px;">登出</a>
+        </div>
+
+        <!-- 成功消息 -->
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+        <!-- 错误消息 -->
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <div style="margin-bottom: 20px;">
+            <a href="/" class="btn btn-back">返回首页</a>
+            <a href="/apply" class="btn btn-back">申请页面</a>
+            <a href="/admin/users" class="btn btn-back">管理员账号</a>
+            <a href="/admin/rcon/test" class="btn btn-back" target="_blank">测试RCON连接</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(applications)}" class="no-data">
+            <h3>暂无申请记录</h3>
+            <p>目前没有玩家申请白名单。</p>
+        </div>
+
+        <div th:if="${!#lists.isEmpty(applications)}">
+            <h3>申请列表 (共 <span th:text="${#lists.size(applications)}">0</span> 条记录)</h3>
+            <table class="applications-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>玩家ID</th>
+                        <th>邮箱</th>
+                        <th>QQ号码</th>
+                        <th>申请原因</th>
+                        <th>申请时间</th>
+                        <th>审核状态</th>
+                        <th class="actions-cell">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="app : ${applications}">
+                        <td th:text="${app.id}"></td>
+                        <td th:text="${app.playerName}"></td>
+                        <td th:text="${app.email}"></td>
+                        <td th:text="${app.qqNumber ?: '未填写'}"></td>
+                        <td class="reason-cell" th:text="${app.reason}"></td>
+                        <td th:text="${#temporals.format(app.createdTime, 'yyyy-MM-dd HH:mm')}"></td>
+                        <td th:class="${app.whitelistStatus == '待审核' ? 'status-pending' : (app.whitelistStatus == '已通过' ? 'status-approved' : 'status-rejected')}"
+                            th:text="${app.whitelistStatus}"></td>
+                        <td class="actions-cell">
+                            <a th:href="@{'/admin/edit/' + ${app.id}}" class="btn btn-edit">编辑</a>
+                            <form th:action="@{'/admin/delete/' + ${app.id}}" method="post"
+                                  style="display: inline-block;"
+                                  onsubmit="return confirm('确定要删除这个申请吗？');">
+                                <button type="submit" class="btn btn-delete">删除</button>
+                            </form>
+
+                            <!-- RCON白名单管理按钮 -->
+                            <form th:action="@{'/admin/whitelist/add/' + ${app.id}}" method="post"
+                                  style="display: inline-block;"
+                                  onsubmit="return confirm('确定要将玩家 ' + '[[${app.playerName}]]' + ' 添加到白名单吗？');">
+                                <button type="submit" class="btn btn-success">添加白名单</button>
+                            </form>
+                            <form th:action="@{'/admin/whitelist/remove/' + ${app.id}}" method="post"
+                                  style="display: inline-block;"
+                                  onsubmit="return confirm('确定要将玩家 ' + '[[${app.playerName}]]' + ' 从白名单移除吗？');">
+                                <button type="submit" class="btn btn-warning">移除白名单</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

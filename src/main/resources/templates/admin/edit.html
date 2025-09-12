@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>编辑申请 - 白名单管理</title>
+    <style>
+        /* 统一到 apply.html 的视觉风格，仅修改样式 */
+        html, body { height: 100%; overflow: hidden; }
+
+        :root {
+            --page-bg: #eaeaea;
+            --card-radius: 24px;
+            --card-shadow: 0 16px 44px rgba(0,0,0,0.24);
+            --label: #0f172a;
+            --border: #e5e7eb;
+            --ring: #2563eb;
+            --placeholder: #9ca3af;
+            --btn: #111111;
+            --btn-hover: #000000;
+            --secondary: #374151;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 16px;
+            background: var(--page-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+            color: #111;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 48px 40px;
+            box-shadow: var(--card-shadow);
+        }
+
+        h1 { margin: 0 0 24px; color: #111; text-align: left; font-size: 24px; font-weight: 800; letter-spacing: -0.2px; }
+
+        .form-group { margin-bottom: 22px; }
+        label { display: block; margin-bottom: 10px; font-weight: 800; color: var(--label); font-size: 16px; }
+
+        input[type="text"], input[type="email"], textarea {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-size: 16px;
+            background: #fff;
+            box-sizing: border-box;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+        textarea { min-height: 120px; resize: vertical; }
+        input::placeholder, textarea::placeholder { color: var(--placeholder); }
+        input:focus, textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px rgba(37,99,235,.25); }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            color: #fff;
+            background: var(--btn);
+            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+            transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
+        }
+        .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
+        .btn-secondary { background: var(--secondary); }
+        .btn-secondary:hover { background: #111827; }
+
+        .required { color: #e11d48; font-weight: 700; }
+        .button-group { text-align: center; margin-top: 30px; }
+
+        .info-section { background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .info-section h3 { margin-top: 0; color: #111; font-weight: 800; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>编辑白名单申请</h1>
+
+        <div class="info-section">
+            <h3>申请信息</h3>
+            <p><strong>申请ID:</strong> <span th:text="${application.id}"></span></p>
+            <p><strong>申请时间:</strong> <span th:text="${#temporals.format(application.createdTime, 'yyyy年MM月dd日 HH:mm')}"></span></p>
+        </div>
+
+        <form th:action="@{/admin/update}" th:object="${application}" method="post">
+            <!-- 隐藏的ID字段 -->
+            <input type="hidden" th:field="*{id}">
+            <input type="hidden" th:field="*{createdTime}">
+
+            <div class="form-group">
+                <label for="playerName">玩家ID <span class="required">*</span></label>
+                <input type="text"
+                       id="playerName"
+                       name="playerName"
+                       th:field="*{playerName}"
+                       placeholder="请输入玩家的Minecraft游戏ID"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">电子邮箱 <span class="required">*</span></label>
+                <input type="email"
+                       id="email"
+                       name="email"
+                       th:field="*{email}"
+                       placeholder="请输入玩家的邮箱地址"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="qqNumber">QQ号码 <span class="required">*</span></label>
+                <input type="text"
+                       id="qqNumber"
+                       name="qqNumber"
+                       th:field="*{qqNumber}"
+                       placeholder="请输入QQ号码"
+                       pattern="[0-9]{5,11}"
+                       title="请输入5-11位数字"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label for="reason">申请原因 <span class="required">*</span></label>
+                <textarea id="reason"
+                          name="reason"
+                          th:field="*{reason}"
+                          placeholder="申请白名单的原因..."
+                          required></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary">保存修改</button>
+                <a href="/admin" class="btn btn-secondary">取消</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

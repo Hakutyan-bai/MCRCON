@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员账号管理</title>
+    <style>
+        /* 统一到 apply.html 的视觉风格，仅修改样式 */
+        html, body { height: 100%; overflow: hidden; }
+
+        :root {
+            --page-bg: #eaeaea;
+            --card-radius: 24px;
+            --card-shadow: 0 16px 44px rgba(0,0,0,0.24);
+            --label: #0f172a;
+            --border: #e5e7eb;
+            --ring: #2563eb;
+            --placeholder: #9ca3af;
+            --btn: #111111;
+            --btn-hover: #000000;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --warning: #f59e0b;
+            --secondary: #374151;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 16px;
+            background: var(--page-bg);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
+            color: #111;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: #fff;
+            border-radius: var(--card-radius);
+            padding: 48px 40px;
+            box-shadow: var(--card-shadow);
+            max-height: calc(100vh - 80px);
+            overflow: auto;
+        }
+
+        h1, h3 { color: #111; margin-bottom: 20px; }
+        h1 { font-weight: 800; letter-spacing: -0.2px; text-align: left; }
+
+        .alert { padding: 15px; margin: 20px 0; border-radius: 12px; border: 1px solid #eee; background: #fafafa; }
+        .alert-success { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .alert-error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+        .user-info { text-align: right; margin-bottom: 20px; padding: 10px; background: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0; }
+        .nav-links { margin-bottom: 30px; }
+
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            font-size: 14px;
+            color: #fff;
+            background: var(--btn);
+            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
+            transition: background-color .15s ease, transform .15s ease, box-shadow .15s ease;
+        }
+        .btn:hover { background: var(--btn-hover); transform: translateY(-1px); }
+        .btn-primary { background: var(--btn); }
+        .btn-danger { background: var(--danger); }
+        .btn-secondary { background: var(--secondary); }
+        .btn-primary:hover { background: var(--btn-hover); }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-secondary:hover { background: #111827; }
+
+        .create-form { background: #f1f5f9; padding: 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #e2e8f0; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 800; color: var(--label); }
+        .form-group input {
+            width: 100%;
+            max-width: 260px; /* 保持表单横向排版 */
+            padding: 12px 14px;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: #fff;
+            transition: border-color .2s ease, box-shadow .2s ease;
+        }
+        .form-group input::placeholder { color: var(--placeholder); }
+        .form-group input:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 3px rgba(37,99,235,.25); }
+
+        .admin-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 20px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
+        .admin-table th, .admin-table td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: left; }
+        .admin-table th { background: #f8fafc; font-weight: 800; }
+        .admin-table tr:nth-child(even) { background: #f9fafb; }
+        .admin-table tr:last-child td { border-bottom: none; }
+
+        .current-user { font-weight: 800; color: var(--success); }
+        .no-data { text-align: center; padding: 50px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>管理员账号管理</h1>
+
+        <!-- 用户信息和登出 -->
+        <div class="user-info">
+            <span>当前登录：<span th:text="${currentUser}" class="current-user"></span></span>
+            <a href="/logout" class="btn btn-secondary" style="margin-left: 15px;">登出</a>
+        </div>
+
+        <!-- 导航链接 -->
+        <div class="nav-links">
+            <a href="/admin" class="btn btn-secondary">返回仪表板</a>
+            <a href="/" class="btn btn-secondary">返回首页</a>
+        </div>
+
+        <!-- 成功/错误消息 -->
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <!-- 创建新管理员表单 -->
+        <div class="create-form">
+            <h3>创建新管理员账号</h3>
+            <form th:action="@{/admin/users/create}" method="post" style="display: flex; gap: 15px; align-items: end;">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input type="text" id="username" name="username" required
+                           placeholder="输入用户名" minlength="3" maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <input type="password" id="password" name="password" required
+                           placeholder="输入密码" minlength="6">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">创建账号</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 管理员列表 -->
+        <div>
+            <h3>现有管理员账号 (共 <span th:text="${#lists.size(adminUsers)}">0</span> 个)</h3>
+
+            <div th:if="${#lists.isEmpty(adminUsers)}" class="no-data">
+                <h4>暂无管理员账号</h4>
+                <p>请先创建管理员账号。</p>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(adminUsers)}">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>角色</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="admin : ${adminUsers}">
+                            <td th:text="${admin.id}"></td>
+                            <td>
+                                <span th:text="${admin.username}"></span>
+                                <span th:if="${admin.username == currentUser}" class="current-user"> (当前用户)</span>
+                            </td>
+                            <td th:text="${admin.role}"></td>
+                            <td>
+                                <span th:if="${admin.enabled}" style="color: #28a745;">启用</span>
+                                <span th:unless="${admin.enabled}" style="color: #dc3545;">禁用</span>
+                            </td>
+                            <td>
+                                <!-- 删除按钮 - 不能删除ID为1的超级管理员和当前登录用户 -->
+                                <form th:if="${admin.username != currentUser && admin.id != 1}"
+                                      th:action="@{'/admin/users/delete/' + ${admin.id}}"
+                                      method="post"
+                                      style="display: inline-block;"
+                                      onsubmit="return confirm('确定要删除管理员 ' + '[[${admin.username}]]' + ' 吗？');">
+                                    <button type="submit" class="btn btn-danger">删除</button>
+                                </form>
+
+                                <!-- 改密码按钮和表单 -->
+                                <button type="button" class="btn btn-primary"
+                                        th:onclick="'showPasswordForm(' + ${admin.id} + ')'">
+                                    改密码
+                                </button>
+
+                                <!-- 隐藏的密码修改表单 -->
+                                <div th:id="'passwordForm' + ${admin.id}" class="password-form" style="display: none; margin-top: 10px;">
+                                    <form th:action="@{'/admin/users/change-password/' + ${admin.id}}" method="post" style="padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                                        <div style="margin-bottom: 8px;">
+                                            <input type="password"
+                                                   th:name="newPassword"
+                                                   placeholder="新密码（至少6位）"
+                                                   required
+                                                   minlength="6"
+                                                   style="width: 150px; padding: 5px; margin-right: 5px;">
+                                        </div>
+                                        <div style="margin-bottom: 8px;">
+                                            <input type="password"
+                                                   th:name="confirmPassword"
+                                                   placeholder="确认新密码"
+                                                   required
+                                                   minlength="6"
+                                                   style="width: 150px; padding: 5px; margin-right: 5px;">
+                                        </div>
+                                        <div>
+                                            <button type="submit" class="btn btn-primary" style="font-size: 12px; padding: 4px 8px;">
+                                                确认修改
+                                            </button>
+                                            <button type="button" class="btn btn-secondary"
+                                                    style="font-size: 12px; padding: 4px 8px; margin-left: 5px;"
+                                                    th:onclick="'hidePasswordForm(' + ${admin.id} + ')'">
+                                                取消
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- 特殊用户标识 -->
+                                <span th:if="${admin.id == 1}" style="color: #dc3545; font-style: italic;">
+                                    超级管理员
+                                </span>
+                                <span th:if="${admin.username == currentUser && admin.id != 1}" style="color: #6c757d; font-style: italic;">
+                                    当前用户
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 显示密码修改表单
+        function showPasswordForm(adminId) {
+            const form = document.getElementById('passwordForm' + adminId);
+            form.style.display = 'block';
+        }
+
+        // 隐藏密码修改表单
+        function hidePasswordForm(adminId) {
+            const form = document.getElementById('passwordForm' + adminId);
+            form.style.display = 'none';
+            // 清空表单内容
+            const inputs = form.querySelectorAll('input[type="password"]');
+            inputs.forEach(input => input.value = '');
+        }
+
+        // 表单提交前验证
+        function validatePasswordForm(form) {
+            const newPassword = form.querySelector('input[name="newPassword"]').value;
+            const confirmPassword = form.querySelector('input[name="confirmPassword"]').value;
+
+            if (newPassword !== confirmPassword) {
+                alert('新密码和确认密码不一致！');
+                return false;
+            }
+
+            if (newPassword.length < 6) {
+                alert('密码长度至少需要6位！');
+                return false;
+            }
+
+            return confirm('确定要修改该用户的密码吗？');
+        }
+
+        // 为所有密码修改表单添加验证
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordForms = document.querySelectorAll('.password-form form');
+            passwordForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    if (!validatePasswordForm(this)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
