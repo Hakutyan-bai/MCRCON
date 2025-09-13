@@ -20,7 +20,7 @@ public class WhitelistApplication {
     @Column(name = "qq_number", nullable = false)
     private String qqNumber;
 
-    @Column(name = "reason", nullable = false, length = 500)
+    @Column(name = "reason", nullable = true, length = 500)
     private String reason;
 
     @Column(name = "whitelist_status")

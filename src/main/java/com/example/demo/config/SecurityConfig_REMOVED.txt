@@ -1,3 +1,0 @@
-// This SecurityConfig file has been removed to fix Spring Security dependency issues
-// Authentication is now handled by LoginController using session management
-

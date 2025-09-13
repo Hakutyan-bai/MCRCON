@@ -139,7 +139,7 @@
     <div class="container">
         <h1>Minecraft 服务器白名单申请</h1>
 
-        <form th:action="@{/apply}" th:object="${application}" method="post">
+        <form th:action="@{/apply}" th:object="${application}" method="post" id="applyForm">
             <div class="form-group">
                 <label for="playerName">玩家ID <span class="required">*</span></label>
                 <input type="text"
@@ -158,6 +158,12 @@
                        th:field="*{email}"
                        placeholder="请输入您的邮箱地址"
                        required>
+                <div style="margin-top:10px; display:flex; gap:8px; align-items:center;">
+                    <input type="text" id="verificationCode" name="verificationCode" placeholder="输入邮箱验证码" required
+                           style="flex:1; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 12px;">
+                    <button type="button" id="sendCodeBtn" class="btn" style="width:auto; min-width:140px;">获取验证码</button>
+                </div>
+                <div id="codeMsg" style="margin-top:6px; font-size:13px; color:#64748b;"></div>
             </div>
 
             <div class="form-group">
@@ -172,17 +178,67 @@
                        required>
             </div>
 
-            <div class="form-group">
-                <label for="reason">申请原因 <span class="required">*</span></label>
-                <textarea id="reason"
-                          name="reason"
-                          th:field="*{reason}"
-                          placeholder="请详细说明您申请白名单的原因..."
-                          required></textarea>
-            </div>
-
             <button type="submit" class="btn">提交申请</button>
         </form>
     </div>
+
+    <script>
+        (function(){
+            const emailInput = document.getElementById('email');
+            const btn = document.getElementById('sendCodeBtn');
+            const msg = document.getElementById('codeMsg');
+            let timer = null; let left = 0;
+            const emailRe = /^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/;
+
+            function setBtnState(disabled, text){
+                btn.disabled = disabled;
+                btn.textContent = text;
+                btn.style.opacity = disabled ? .7 : 1;
+                btn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+            }
+
+            btn.addEventListener('click', async function(){
+                const email = (emailInput.value || '').trim();
+                msg.style.color = '#64748b';
+                if(!email || !emailRe.test(email)){
+                    msg.textContent = '请先输入有效的邮箱地址';
+                    msg.style.color = '#dc2626';
+                    return;
+                }
+                try{
+                    setBtnState(true, '发送中...');
+                    const form = new URLSearchParams();
+                    form.append('email', email);
+                    const resp = await fetch('/apply/send-code', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: form.toString()
+                    });
+                    const data = await resp.json();
+                    if(data.success){
+                        msg.textContent = '验证码已发送，请在10分钟内使用。';
+                        left = 60; // 与后端频率限制一致
+                        timer = setInterval(()=>{
+                            if(left <= 0){
+                                clearInterval(timer); timer = null;
+                                setBtnState(false, '获取验证码');
+                                msg.textContent = '';
+                            } else {
+                                setBtnState(true, `重新发送(${left--}s)`);
+                            }
+                        }, 1000);
+                    } else {
+                        msg.textContent = data.message || '发送失败，请稍后重试';
+                        msg.style.color = '#dc2626';
+                        setBtnState(false, '获取验证码');
+                    }
+                } catch (e){
+                    msg.textContent = '网络错误，请稍后重试';
+                    msg.style.color = '#dc2626';
+                    setBtnState(false, '获取验证码');
+                }
+            });
+        })();
+    </script>
 </body>
 </html>

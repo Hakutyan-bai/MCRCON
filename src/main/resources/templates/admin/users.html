@@ -6,7 +6,7 @@
     <title>管理员账号管理</title>
     <style>
         /* 统一到 apply.html 的视觉风格，仅修改样式 */
-        html, body { height: 100%; overflow: hidden; }
+
 
         :root {
             --page-bg: #eaeaea;
@@ -34,7 +34,10 @@
             background: var(--page-bg);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', Arial, sans-serif;
             color: #111;
-            overflow: hidden;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
         }
 
         .container {
@@ -44,8 +47,9 @@
             border-radius: var(--card-radius);
             padding: 48px 40px;
             box-shadow: var(--card-shadow);
-            max-height: calc(100vh - 80px);
-            overflow: auto;
+
+            max-height: none;
+            overflow: visible;
         }
 
         h1, h3 { color: #111; margin-bottom: 20px; }
@@ -189,14 +193,16 @@
                                     <button type="submit" class="btn btn-danger">删除</button>
                                 </form>
 
-                                <!-- 改密码按钮和表单 -->
+                                <!-- 改密码按钮（仅本人可改超级管理员账号密码） -->
                                 <button type="button" class="btn btn-primary"
+                                        th:if="${admin.id != 1 || admin.username == currentUser}"
                                         th:onclick="'showPasswordForm(' + ${admin.id} + ')'">
                                     改密码
                                 </button>
 
-                                <!-- 隐藏的密码修改表单 -->
-                                <div th:id="'passwordForm' + ${admin.id}" class="password-form" style="display: none; margin-top: 10px;">
+                                <!-- 隐藏的密码修改表单（同上条件显示） -->
+                                <div th:if="${admin.id != 1 || admin.username == currentUser}"
+                                     th:id="'passwordForm' + ${admin.id}" class="password-form" style="display: none; margin-top: 10px;">
                                     <form th:action="@{'/admin/users/change-password/' + ${admin.id}}" method="post" style="padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
                                         <div style="margin-bottom: 8px;">
                                             <input type="password"

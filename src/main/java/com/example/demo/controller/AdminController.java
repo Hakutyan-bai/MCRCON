@@ -199,10 +199,19 @@ public class AdminController {
             // 获取要修改密码的用户
             Optional<AdminUser> adminUser = adminUserService.getAdminById(id);
             if (adminUser.isPresent()) {
-                // 直接修改指定用户的密码
-                adminUserService.changePassword(adminUser.get().getUsername(), newPassword);
+                AdminUser target = adminUser.get();
+
+                // 限制：超级管理员(ID=1)只能由本人修改
+                String currentUsername = (String) session.getAttribute("adminUser");
+                if (id == 1L && (currentUsername == null || !target.getUsername().equals(currentUsername))) {
+                    redirectAttributes.addFlashAttribute("error", "超级管理员账号只能由本人修改密码！");
+                    return "redirect:/admin/users";
+                }
+
+                // 执行修改
+                adminUserService.changePassword(target.getUsername(), newPassword);
                 redirectAttributes.addFlashAttribute("success",
-                    "用户 " + adminUser.get().getUsername() + " 的密码修改成功！");
+                        "用户 " + target.getUsername() + " 的密码修改成功！");
             } else {
                 redirectAttributes.addFlashAttribute("error", "用户不存在！");
             }

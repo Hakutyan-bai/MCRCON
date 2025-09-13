@@ -58,4 +58,28 @@ public class EmailService {
             System.err.println("发送审核结果邮件失败: " + e.getMessage());
         }
     }
+
+    /**
+     * 发送邮箱验证码
+     */
+    public void sendVerificationCode(String to, String code) {
+        if (!configManager.isMailEnabled()) {
+            return;
+        }
+        try {
+            String charset = configManager.getMailCharset();
+            String subject = "邮箱验证代码";
+            String text = "您的验证码为：" + code + "，10分钟内有效。\n\n— 本邮件由系统自动发送，请勿回复。";
+
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, charset);
+            helper.setFrom(configManager.getMailFrom());
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text, false);
+            mailSender.send(mimeMessage);
+        } catch (Exception e) {
+            System.err.println("发送验证码邮件失败: " + e.getMessage());
+        }
+    }
 }
