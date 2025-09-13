@@ -5,6 +5,7 @@ import com.example.demo.entity.AdminUser;
 import com.example.demo.service.WhitelistApplicationService;
 import com.example.demo.service.AdminUserService;
 import com.example.demo.service.RconService;
+import com.example.demo.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,6 +28,9 @@ public class AdminController {
 
     @Autowired
     private RconService rconService;
+
+    @Autowired
+    private EmailService emailService;
 
     // 检查登录状态的方法
     private boolean isLoggedIn(HttpSession session) {
@@ -67,8 +71,27 @@ public class AdminController {
         }
 
         try {
-            whitelistService.updateApplication(application);
-            redirectAttributes.addFlashAttribute("success", "申请信息已成功更新！");
+            // 读取原记录，检测状态是否变化
+            Optional<WhitelistApplication> originOpt = whitelistService.getApplicationById(application.getId());
+            if (originOpt.isPresent()) {
+                WhitelistApplication origin = originOpt.get();
+                origin.setPlayerName(application.getPlayerName());
+                origin.setEmail(application.getEmail());
+                origin.setQqNumber(application.getQqNumber());
+                origin.setReason(application.getReason());
+                origin.setWhitelistStatus(application.getWhitelistStatus());
+
+                WhitelistApplication saved = whitelistService.updateApplication(origin);
+                redirectAttributes.addFlashAttribute("success", "申请信息已成功更新！");
+
+                // 若状态为已通过/已拒绝，发送邮件通知
+                String status = saved.getWhitelistStatus();
+                if ("已通过".equals(status) || "已拒绝".equals(status)) {
+                    emailService.sendReviewResultEmail(saved);
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("error", "记录不存在！");
+            }
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "更新失败，请稍后重试。");
         }
@@ -209,6 +232,9 @@ public class AdminController {
                 application.setWhitelistStatus("已通过");
                 whitelistService.updateApplication(application);
 
+                // 邮件通知
+                emailService.sendReviewResultEmail(application);
+
                 redirectAttributes.addFlashAttribute("success", "RCON执行结果: " + result);
             } else {
                 redirectAttributes.addFlashAttribute("error", "找不到该申请记录！");
@@ -235,6 +261,9 @@ public class AdminController {
                 // 更新申请状态为"已拒绝"
                 application.setWhitelistStatus("已拒绝");
                 whitelistService.updateApplication(application);
+
+                // 邮件通知
+                emailService.sendReviewResultEmail(application);
 
                 redirectAttributes.addFlashAttribute("success", "RCON执行结果: " + result);
             } else {

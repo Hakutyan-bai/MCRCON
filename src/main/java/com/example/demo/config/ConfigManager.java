@@ -24,6 +24,8 @@ public class ConfigManager {
                 createDefaultConfigFile();
             }
             loadConfigFile();
+            // 新增：为旧版本配置文件补齐邮件配置
+            ensureMailConfigExists();
         } catch (Exception e) {
             System.err.println("配置文件初始化失败: " + e.getMessage());
             e.printStackTrace();
@@ -58,6 +60,16 @@ public class ConfigManager {
         defaultProps.setProperty("rcon.password", "rcon_password");
         defaultProps.setProperty("rcon.timeout", "3000");
 
+        // 邮件配置（默认关闭，使用网易邮箱SMTP；授权码需自行填写）
+        defaultProps.setProperty("mail.enabled", "false");
+        defaultProps.setProperty("mail.host", "smtp.163.com");
+        defaultProps.setProperty("mail.port", "465");
+        defaultProps.setProperty("mail.username", "your_account@163.com");
+        defaultProps.setProperty("mail.password", "your_163_auth_code");
+        defaultProps.setProperty("mail.from", "your_account@163.com");
+        defaultProps.setProperty("mail.ssl", "true");
+        defaultProps.setProperty("mail.timeout", "10000");
+
         // 写入配置文件
         try (FileWriter writer = new FileWriter(CONFIG_FILE, StandardCharsets.UTF_8)) {
             writer.write("# MC_RCON 白名单管理系统配置文件\n");
@@ -79,7 +91,18 @@ public class ConfigManager {
             writer.write("rcon.host=" + defaultProps.getProperty("rcon.host") + "\n");
             writer.write("rcon.port=" + defaultProps.getProperty("rcon.port") + "\n");
             writer.write("rcon.password=" + defaultProps.getProperty("rcon.password") + "\n");
-            writer.write("rcon.timeout=" + defaultProps.getProperty("rcon.timeout") + "\n");
+            writer.write("rcon.timeout=" + defaultProps.getProperty("rcon.timeout") + "\n\n");
+
+            writer.write("# ========== 邮件通知（审核结果）配置 ==========\n");
+            writer.write("# 启用后将给玩家邮箱发送审核结果通知；邮箱需开启SMTP并使用授权码\n");
+            writer.write("mail.enabled=" + defaultProps.getProperty("mail.enabled") + "\n");
+            writer.write("mail.host=" + defaultProps.getProperty("mail.host") + "\n");
+            writer.write("mail.port=" + defaultProps.getProperty("mail.port") + "\n");
+            writer.write("mail.username=" + defaultProps.getProperty("mail.username") + "\n");
+            writer.write("mail.password=" + defaultProps.getProperty("mail.password") + "\n");
+            writer.write("mail.from=" + defaultProps.getProperty("mail.from") + "\n");
+            writer.write("mail.ssl=" + defaultProps.getProperty("mail.ssl") + "\n");
+            writer.write("mail.timeout=" + defaultProps.getProperty("mail.timeout") + "\n");
         }
 
         System.out.println("已生成默认配置文件: " + Paths.get(CONFIG_FILE).toAbsolutePath());
@@ -92,6 +115,46 @@ public class ConfigManager {
             configProperties.load(reader);
         }
         System.out.println("已加载配置文件: " + CONFIG_FILE);
+    }
+
+    // 新增：补齐缺失的邮件配置项
+    private void ensureMailConfigExists() {
+        String[][] defaults = new String[][]{
+                {"mail.enabled", "false"},
+                {"mail.host", "smtp.163.com"},
+                {"mail.port", "465"},
+                {"mail.username", "your_account@163.com"},
+                {"mail.password", "your_163_auth_code"},
+                {"mail.from", "your_account@163.com"},
+                {"mail.ssl", "true"},
+                {"mail.timeout", "10000"}
+        };
+
+        StringBuilder appendBuf = new StringBuilder();
+        boolean needAppendHeader = false;
+
+        for (String[] kv : defaults) {
+            String key = kv[0];
+            String def = kv[1];
+            if (configProperties.getProperty(key) == null) {
+                configProperties.setProperty(key, def);
+                if (!needAppendHeader) {
+                    needAppendHeader = true;
+                    appendBuf.append("\n# ========== 邮件通知（审核结果）配置（自动补齐）==========\n");
+                    appendBuf.append("# 修改为您自己的网易邮箱账号与授权码，并将 mail.enabled 设置为 true\n");
+                }
+                appendBuf.append(key).append("=").append(def).append("\n");
+            }
+        }
+
+        if (needAppendHeader) {
+            try (FileWriter writer = new FileWriter(CONFIG_FILE, StandardCharsets.UTF_8, true)) {
+                writer.write(appendBuf.toString());
+                System.out.println("已为配置文件追加缺失的邮件配置项");
+            } catch (IOException e) {
+                System.err.println("追加邮件配置失败: " + e.getMessage());
+            }
+        }
     }
 
     // Getter methods for configuration values
@@ -137,6 +200,47 @@ public class ConfigManager {
 
     public int getRconTimeout() {
         return Integer.parseInt(configProperties.getProperty("rcon.timeout", "3000"));
+    }
+
+    // 邮件
+    public boolean isMailEnabled() {
+        return Boolean.parseBoolean(configProperties.getProperty("mail.enabled", "false"));
+    }
+
+    public String getMailHost() {
+        return configProperties.getProperty("mail.host", "smtp.163.com");
+    }
+
+    public int getMailPort() {
+        return Integer.parseInt(configProperties.getProperty("mail.port", "465"));
+    }
+
+    public String getMailUsername() {
+        return configProperties.getProperty("mail.username", "");
+    }
+
+    public String getMailPassword() {
+        return configProperties.getProperty("mail.password", "");
+    }
+
+    public String getMailFrom() {
+        return configProperties.getProperty("mail.from", getMailUsername());
+    }
+
+    public String getMailFromName() {
+        return configProperties.getProperty("mail.fromName", "MC白名单系统");
+    }
+
+    public String getMailCharset() {
+        return configProperties.getProperty("mail.charset", "UTF-8");
+    }
+
+    public boolean isMailSsl() {
+        return Boolean.parseBoolean(configProperties.getProperty("mail.ssl", "true"));
+    }
+
+    public int getMailTimeout() {
+        return Integer.parseInt(configProperties.getProperty("mail.timeout", "10000"));
     }
 
     // 构建数据库连接URL
