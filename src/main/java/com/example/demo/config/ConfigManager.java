@@ -46,7 +46,7 @@ public class ConfigManager {
         // 数据库配置
         defaultProps.setProperty("database.host", "localhost");
         defaultProps.setProperty("database.port", "3306");
-        defaultProps.setProperty("database.name", "mcrcon");
+        defaultProps.setProperty("database.name", "your_database");
         defaultProps.setProperty("database.username", "root");
         defaultProps.setProperty("database.password", "mysql_password");
 
