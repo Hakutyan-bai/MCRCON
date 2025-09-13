@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>mcwebwhitelist</artifactId>
+	<artifactId>mc-web-whitelist</artifactId>
 	<version>0.0.3-SNAPSHOT</version>
 	<name>MCWebWhitelist</name>
 	<description>Demo project for Spring Boot</description>
